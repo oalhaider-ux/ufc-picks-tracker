@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFC Picks Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Stint+Ultra+Condensed&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #8B0000;
+            margin-bottom: 10px;
+            font-size: 3em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+            font-family: 'Stint Ultra Condensed', cursive;
+            letter-spacing: 3px;
+            font-weight: 400;
+        }
+
+        .event-title {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .live-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #28a745;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #444;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 15px 40px;
+            background: #333;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2em;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #444;
+        }
+
+        .tab.active {
+            background: #d4af37;
+            color: #000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Picks Tab */
+        .user-section {
+            background: #2a2a2a;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .user-input {
+            margin-bottom: 25px;
+        }
+
+        .user-input input {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+
+        .fight-card {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #d4af37;
+        }
+
+        .fight-card h3 {
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .fighter-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .fighter-btn {
+            padding: 15px;
+            background: #444;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .fighter-btn:hover {
+            background: #555;
+            border-color: #d4af37;
+        }
+
+        .fighter-btn.selected {
+            background: #d4af37;
+            color: #000;
+            border-color: #d4af37;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #d4af37;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #c49d2e;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Leaderboard Tab */
+        .leaderboard {
+            background: #2a2a2a;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .leaderboard-row {
+            background: #333;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .leaderboard-row:hover {
+            background: #3a3a3a;
+            transform: translateX(5px);
+        }
+
+        .leaderboard-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-name-rank {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .rank {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #d4af37;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .rank.first {
+            color: #FFD700;
+        }
+
+        .rank.second {
+            color: #C0C0C0;
+        }
+
+        .rank.third {
+            color: #CD7F32;
+        }
+
+        .leaderboard-name {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .leaderboard-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .accuracy {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .bar-graph-container {
+            width: 100%;
+            background: #222;
+            border-radius: 5px;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-graph-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .bar-graph-fill.first {
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .bar-graph-fill.second {
+            background: linear-gradient(90deg, #C0C0C0 0%, #A8A8A8 100%);
+        }
+
+        .bar-graph-fill.third {
+            background: linear-gradient(90deg, #CD7F32 0%, #B8732D 100%);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 1.2em;
+        }
+
+        .success-message {
+            background: #28a745;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .error-message {
+            background: #c41e3a;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .edit-picks-notice {
+            background: #444;
+            color: #d4af37;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .edit-picks-notice.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .leaderboard-stats {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
+            }
+
+            .leaderboard-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥊 UFC PICKS TRACKER 🥊</h1>
+        <div class="event-title">
+            <span class="live-indicator"></span>
+            <span id="eventTitleDisplay">Loading...</span>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('picks')">Make Picks</button>
+            <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+        </div>
+
+        <!-- PICKS TAB -->
+        <div id="picks" class="tab-content active">
+            <div class="user-section">
+                <div class="success-message" id="pickSuccess">Picks saved successfully! ✅</div>
+                <div class="edit-picks-notice" id="editNotice">💡 You can change your picks anytime before results are posted!</div>
+                <div class="user-input">
+                    <input type="text" id="userName" placeholder="Enter your name">
+                </div>
+                <div id="fightsList"></div>
+                <button onclick="submitPicks()" style="margin-top: 20px; width: 100%;">Submit Picks</button>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD TAB -->
+        <div id="leaderboard" class="tab-content">
+            <div class="leaderboard">
+                <h2 style="color: #d4af37; margin-bottom: 20px; text-align: center;">Current Standings</h2>
+                <div id="leaderboardList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // IMPORTANT: Replace this with your Firebase config
+        // You'll get this from the Firebase Console after setting up your project
+        const firebaseConfig = {
+            apiKey: "AIza...",
+ 	    authDomain: "your-app.firebaseapp.com",
+            databaseURL: "https://your-app.firebaseio.com",
+            projectId: "your-project",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123:web:abc123"
+        };
+
+        let db = null;
+        let appData = {
+            eventName: '',
+            fights: [],
+            picks: {},
+            results: {}
+        };
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.database();
+                
+                setupListeners();
+                return true;
+            } catch (error) {
+                showError('Firebase initialization error. Please contact the admin.');
+                console.error(error);
+                return false;
+            }
+        }
+
+        function setupListeners() {
+            if (!db) return;
+
+            db.ref('event').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    appData.eventName = data.name || '';
+                    updateEventDisplay();
+                }
+            });
+
+            db.ref('fights').on('value', (snapshot) => {
+                const data = snapshot.val();
+                appData.fights = data ? Object.values(data) : [];
+                renderFights();
+            });
+
+            db.ref('picks').on('value', (snapshot) => {
+                const data = snapshot.val();
+                appData.picks = data || {};
+                renderLeaderboard();
+                
+                const userName = document.getElementById('userName').value.trim();
+                if (userName && appData.picks[userName]) {
+                    updatePicksDisplay(userName);
+                }
+            });
+
+            db.ref('results').on('value', (snapshot) => {
+                const data = snapshot.val();
+                appData.results = data || {};
+                renderLeaderboard();
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function updateEventDisplay() {
+            const display = document.getElementById('eventTitleDisplay');
+            display.textContent = appData.eventName || 'Waiting for admin to set up event...';
+        }
+
+        function renderFights() {
+            const container = document.getElementById('fightsList');
+            
+            if (appData.fights.length === 0) {
+                container.innerHTML = '<div class="no-data">No fights added yet. Waiting for admin to set up the event.</div>';
+                return;
+            }
+
+            container.innerHTML = appData.fights.map((fight, index) => `
+                <div class="fight-card">
+                    <h3>Fight ${index + 1}</h3>
+                    <div class="fighter-buttons">
+                        <button class="fighter-btn" data-fight="${fight.id}" data-fighter="${fight.fighter1}">
+                            ${fight.fighter1}
+                        </button>
+                        <button class="fighter-btn" data-fight="${fight.id}" data-fighter="${fight.fighter2}">
+                            ${fight.fighter2}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.fighter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const fightId = this.dataset.fight;
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.fighter-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            const userName = document.getElementById('userName').value.trim();
+            if (userName) {
+                updatePicksDisplay(userName);
+            }
+        }
+
+        function updatePicksDisplay(userName) {
+            if (appData.picks[userName]) {
+                const userPicks = appData.picks[userName];
+                Object.keys(userPicks).forEach(fightId => {
+                    const btn = document.querySelector(`[data-fight="${fightId}"][data-fighter="${userPicks[fightId]}"]`);
+                    if (btn) btn.classList.add('selected');
+                });
+                document.getElementById('editNotice').classList.add('show');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const userNameInput = document.getElementById('userName');
+            userNameInput.addEventListener('input', function() {
+                const userName = this.value.trim();
+                if (userName && appData.picks[userName]) {
+                    renderFights();
+                }
+            });
+        });
+
+        function submitPicks() {
+            if (!db) {
+                showError('Not connected to database. Please refresh the page.');
+                return;
+            }
+
+            const userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                alert('Please enter your name');
+                return;
+            }
+
+            const picks = {};
+            let allSelected = true;
+
+            appData.fights.forEach(fight => {
+                const selected = document.querySelector(`.fighter-btn[data-fight="${fight.id}"].selected`);
+                if (selected) {
+                    picks[fight.id] = selected.dataset.fighter;
+                } else {
+                    allSelected = false;
+                }
+            });
+
+            if (!allSelected) {
+                alert('Please make a pick for all fights');
+                return;
+            }
+
+            db.ref('picks/' + userName).set(picks)
+                .then(() => {
+                    const successMsg = document.getElementById('pickSuccess');
+                    successMsg.classList.add('show');
+                    setTimeout(() => successMsg.classList.remove('show'), 3000);
+                    document.getElementById('editNotice').classList.add('show');
+                })
+                .catch(error => showError('Error saving picks: ' + error.message));
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardList');
+            
+            if (Object.keys(appData.picks).length === 0) {
+                container.innerHTML = '<div class="no-data">No picks submitted yet</div>';
+                return;
+            }
+
+            const scores = Object.keys(appData.picks).map(userName => {
+                const userPicks = appData.picks[userName];
+                let correct = 0;
+                let total = 0;
+
+                Object.keys(appData.results).forEach(fightId => {
+                    if (userPicks[fightId] === appData.results[fightId]) {
+                        correct++;
+                    }
+                    total++;
+                });
+
+                return {
+                    name: userName,
+                    score: correct,
+                    accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+                    total: total
+                };
+            });
+
+            scores.sort((a, b) => b.score - a.score);
+
+            const maxScore = Math.max(...scores.map(s => s.score), 1);
+
+            container.innerHTML = scores.map((user, index) => {
+                const rankClass = index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : '';
+                const barWidth = (user.score / maxScore) * 100;
+                
+                return `
+                    <div class="leaderboard-row">
+                        <div class="leaderboard-header-content">
+                            <div class="leaderboard-name-rank">
+                                <div class="rank ${rankClass}">#${index + 1}</div>
+                                <div class="leaderboard-name">${user.name}</div>
+                            </div>
+                            <div class="leaderboard-stats">
+                                <div class="score">${user.score}</div>
+                                <div class="accuracy">${user.total > 0 ? user.accuracy + '% correct' : 'No results yet'}</div>
+                            </div>
+                        </div>
+                        <div class="bar-graph-container">
+                            <div class="bar-graph-fill ${rankClass}" style="width: ${barWidth}%">
+                                ${user.score > 0 ? user.score + ' correct' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.addEventListener('load', () => {
+            initializeFirebase();
+        });
+    </script>
+</body>
+</html>
